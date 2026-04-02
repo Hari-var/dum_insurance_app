@@ -1,5 +1,5 @@
 DEPLOY_TARGET = "render"
-APP_NAME = "my-insurance-app1"
+APP_NAME = "my-insurance-app2658"
 RENDER_SERVICE_TYPE = "static_site"
 PUBLISH_PATH = "./build"
 REGION = "oregon"
