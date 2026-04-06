@@ -1,4 +1,3 @@
-DEPLOY_TARGET = "render"
 APP_NAME = "my-insurance-app24"
 RENDER_SERVICE_TYPE = "static_site"
 PUBLISH_PATH = "./build"
