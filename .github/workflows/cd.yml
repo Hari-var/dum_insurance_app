@@ -26,16 +26,16 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     - name: Provision Resource Group
-      run: az group create --name devops-rg --location eastus
+      run: az group create --name devops-agent-rg --location eastus
     - name: Provision App Service Plan
       run: az appservice plan create --name ${{ secrets.AZURE_WEBAPP_NAME }}-plan
-        --resource-group devops-rg --sku B1 --is-linux
+        --resource-group devops-agent-rg --sku B1 --is-linux
     - name: Provision Web App
       run: az webapp create --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group
-        devops-rg --plan ${{ secrets.AZURE_WEBAPP_NAME }}-plan --runtime 'NODE:20-lts'
+        devops-agent-rg --plan ${{ secrets.AZURE_WEBAPP_NAME }}-plan --runtime 'NODE:20-lts'
     - name: Set startup command
       run: az webapp config set --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group
-        devops-rg --startup-file 'npm start'
+        devops-agent-rg --startup-file 'npm start'
     - name: Deploy to Azure Web App
       run: az webapp deploy --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group
-        devops-rg --src-path release.zip --type zip
+        devops-agent-rg --src-path release.zip --type zip
