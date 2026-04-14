@@ -24,28 +24,48 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-    
-    - name: 📥 Checkout Repository
+    - name: 📥 Checkout repository
       uses: actions/checkout@v4
 
-    - name: 🔍 Debug Workflow Info
+    - name: 🔍 Debug workflow
       run: |
-        echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
-        echo "Workflow Name: ${{ github.event.workflow_run.name }}"
+        echo "Run ID: ${{ github.event.workflow_run.id }}"
+        echo "Workflow: ${{ github.event.workflow_run.name }}"
 
-    - name: 📦 Download Build Artifacts
-      uses: actions/download-artifact@v4
+    # 🔥 Download artifact from CI workflow
+    - name: 📦 Download artifact from CI
+      uses: actions/github-script@v7
       with:
-        name: build-artifacts
-        path: ./artifacts
-        run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GH_TOKEN }}
+        script: |
+          const run_id = context.payload.workflow_run.id;
+          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: run_id,
+          });
 
-    - name: 📂 Verify Artifacts
+          const artifact = artifacts.data.artifacts.find(a => a.name === "build-artifacts");
+
+          if (!artifact) {
+            throw new Error("Artifact not found");
+          }
+
+          const download = await github.rest.actions.downloadArtifact({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            artifact_id: artifact.id,
+            archive_format: "zip",
+          });
+
+          const fs = require("fs");
+          fs.writeFileSync("artifact.zip", Buffer.from(download.data));
+
+    - name: 📂 Extract artifact
       run: |
-        echo "Listing artifacts directory"
-        ls -la ./artifacts
-        ls -la ./artifacts/dist || true
+        mkdir -p artifacts
+        unzip artifact.zip -d artifacts
+        ls -la artifacts
 
     - name: 🔐 Login to Azure
       uses: azure/login@v1
@@ -59,17 +79,17 @@ jobs:
         resource-group: ${{ env.RESOURCE_GROUP }}
         package: ./artifacts/dist
 
-    - name: ⏳ Wait for Deployment
+    - name: ⏳ Wait for deployment
       run: sleep 30
 
-    - name: ✅ Validate Deployment
+    - name: ✅ Validate deployment
       run: |
         APP_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
-        
+
         echo "Testing deployment at $APP_URL"
-        
+
         HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $APP_URL)
-        
+
         if [ $HTTP_STATUS -eq 200 ]; then
           echo "✅ Deployment successful"
           echo "🌐 Application URL: $APP_URL"
@@ -81,8 +101,7 @@ jobs:
     - name: 📢 Deployment Summary
       run: |
         APP_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
-        
+
         echo "## 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
         echo "- 🌐 App URL: $APP_URL" >> $GITHUB_STEP_SUMMARY
-        echo "- 🔧 Environment: dev" >> $GITHUB_STEP_SUMMARY
         echo "🎉 CD_SUCCESS: $APP_URL"
