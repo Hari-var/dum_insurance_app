@@ -1,33 +1,28 @@
 name: 🚀 CD - Deploy Application
 
 on:
-  workflow_dispatch:
-    inputs:
-      approval_id:
-        description: Approval ID from Terraform workflow
-        required: true
-        type: string
+  workflow_run:
+    workflows: ["CI - Build and Test"]
+    types:
+      - completed
 
 env:
   AZURE_WEBAPP_NAME: my-app13389884
-  AZURE_WEBAPP_PACKAGE_PATH: .
 
 jobs:
   deploy:
-    name: 🚀 Deploy to Azure Web App
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
-    - name: 📥 Checkout repository
+    - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 📦 Download Build Artifacts
+    - name: 📦 Download Artifacts
       uses: actions/download-artifact@v4
       with:
         name: build-artifacts
+        run-id: ${{ github.event.workflow_run.id }}
         path: dist
 
     - name: 🔐 Azure Login
@@ -35,23 +30,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 🚀 Deploy to Azure Web App
+    - name: 🚀 Deploy
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         package: dist
-
-    - name: 🌍 Get App URL
-      id: get-url
-      run: |
-        APP_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
-        echo "app_url=$APP_URL" >> $GITHUB_OUTPUT
-        echo "APP_URL=$APP_URL" >> $GITHUB_ENV
-        echo "🌍 Live URL: $APP_URL"
-
-    - name: ✅ Deployment Summary
-      run: |
-        echo "## 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
-        echo "- **App URL**: ${{ steps.get-url.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Environment**: dev" >> $GITHUB_STEP_SUMMARY
-        echo "🎉 CD_SUCCESS: ${{ steps.get-url.outputs.app_url }}"
