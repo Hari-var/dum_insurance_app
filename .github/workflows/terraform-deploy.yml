@@ -1,4 +1,4 @@
-name: "\U0001F3D7\uFE0F Terraform Infrastructure Deployment"
+name: 🏗️ Terraform Infrastructure Deployment
 'on':
   workflow_dispatch:
     inputs:
@@ -14,52 +14,57 @@ env:
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 jobs:
   terraform:
-    name: "\U0001F680 Deploy Infrastructure"
+    name: 🚀 Deploy Infrastructure
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
     steps:
-    - name: "\U0001F4E5 Checkout Code"
+    - name: 📥 Checkout Code
       uses: actions/checkout@v4
-    - name: "\U0001F527 Setup Terraform"
+    - name: 🔧 Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ env.TF_VERSION }}
         terraform_wrapper: false
-    - name: "\U0001F510 Azure Login"
+    - name: 🔐 Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    - name: "\U0001F4CB Terraform Format Check"
+    - name: 📋 Terraform Format Check
       run: terraform fmt -check
       working-directory: ./terraform
-    - name: "\U0001F50D Terraform Validate"
+    - name: 🔍 Terraform Validate
       run: terraform validate
       working-directory: ./terraform
-    - name: "\U0001F680 Terraform Init"
-      run: terraform init \  -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP
-        }}" \  -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT
-        }}" \  -backend-config="container_name=tfstate" \  -backend-config="key=${{
-        github.repository }}-${{ github.ref_name }}.tfstate"
+    - name: 🚀 Terraform Init
+      run: terraform init -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP
+        }}" -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT
+        }}" -backend-config="container_name=tfstate" -backend-config="key=${{ github.repository
+        }}-${{ github.ref_name }}.tfstate"
       working-directory: ./terraform
-    - name: "\U0001F4CA Terraform Plan"
-      run: terraform plan \  -var="app_name=${{ secrets.APP_NAME || 'my-app133484'
-        }}" \  -var="environment=dev" \  -var="location=${{ secrets.AZURE_LOCATION
-        || 'eastus' }}" \  -out=tfplan
+    - name: 📊 Terraform Plan
+      run: terraform plan -var="app_name=${{ secrets.APP_NAME || 'my-app133484' }}"
+        -var="environment=dev" -var="location=${{ secrets.AZURE_LOCATION || 'eastus'
+        }}" -out=tfplan
       working-directory: ./terraform
-    - name: "\U0001F3D7\uFE0F Terraform Apply"
+    - name: 🏗️ Terraform Apply
       run: terraform apply -auto-approve tfplan
       working-directory: ./terraform
-    - name: "\U0001F4E4 Export Outputs"
+    - name: 📤 Export Outputs
       id: terraform-outputs
       run: 'echo "app_url=$(terraform output -raw app_url)" >> $GITHUB_OUTPUT
 
         echo "resource_group=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT'
       working-directory: ./terraform
-    - name: "\u2705 Deployment Summary"
-      run: "echo \"## \U0001F389 Deployment Successful!\" >> $GITHUB_STEP_SUMMARY\n\
-        echo \"- **App URL**: ${{ steps.terraform-outputs.outputs.app_url }}\" >>\
-        \ $GITHUB_STEP_SUMMARY\necho \"- **Resource Group**: ${{ steps.terraform-outputs.outputs.resource_group\
-        \ }}\" >> $GITHUB_STEP_SUMMARY\necho \"- **Environment**: dev\" >> $GITHUB_STEP_SUMMARY\n\
-        echo \"- **Approval ID**: ${{ github.event.inputs.approval_id }}\" >> $GITHUB_STEP_SUMMARY"
+    - name: ✅ Deployment Summary
+      run: 'echo "## 🎉 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+
+        echo "- **App URL**: ${{ steps.terraform-outputs.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
+
+        echo "- **Resource Group**: ${{ steps.terraform-outputs.outputs.resource_group
+        }}" >> $GITHUB_STEP_SUMMARY
+
+        echo "- **Environment**: dev" >> $GITHUB_STEP_SUMMARY
+
+        echo "- **Approval ID**: ${{ github.event.inputs.approval_id }}" >> $GITHUB_STEP_SUMMARY'
