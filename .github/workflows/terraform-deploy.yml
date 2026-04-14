@@ -46,7 +46,7 @@ jobs:
         working-directory: ./terraform
 
       - name: 📊 Terraform Plan
-        run: terraform plan -var="app_name=my-app13348884" -var="environment=dev" -out=tfplan
+        run: terraform plan -var="app_name=my-app133488884" -var="environment=dev" -out=tfplan
         working-directory: ./terraform
 
       - name: 🏗️ Terraform Apply
