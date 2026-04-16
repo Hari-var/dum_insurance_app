@@ -2,7 +2,7 @@
 variable "app_name" {
   description = "Application name"
   type        = string
-  default     = "my-insurance-application1423"
+  default     = "Vm-insurance-application1423"
   
   validation {
     condition     = can(regex("^[a-zA-Z0-9-]{1,60}$", var.app_name))
@@ -13,7 +13,7 @@ variable "app_name" {
 variable "resource_group_name" {
   description = "Resource group name"
   type        = string
-  default     = "my-insurance-application1423-rg"
+  default     = "Vm-insurance-application1423-rg"
   
   validation {
     condition     = can(regex("^[a-zA-Z0-9._()-]{1,90}$", var.resource_group_name))
@@ -58,7 +58,7 @@ variable "common_tags" {
   type        = map(string)
   default = {
     Environment = "dev"
-    Application = "my-insurance-application1423"
+    Application = "Vm-insurance-application1423"
     ManagedBy   = "Terraform"
     CreatedBy   = "DevOps-Agent"
   }
